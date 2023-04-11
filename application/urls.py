@@ -13,4 +13,6 @@ urlpatterns = [
     path('register/', views.register, name='register'),
     path('logout/', LogoutView.as_view(next_page='/'), name='logout'),
     path('login/', views.login_view, name='login'),
+    path('create_post/', views.create_post, name='create_post'),
+    path('home/', views.home_view, name='home'),
 ]
