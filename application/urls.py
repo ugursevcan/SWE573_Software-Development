@@ -1,12 +1,8 @@
 from django.contrib.auth import login
-from django.urls import path
 from .views import landing_page_view
 from django.urls import include, path
 from . import views
 from django.contrib.auth.views import LoginView, LogoutView
-
-
-
 
 urlpatterns = [
     path('', landing_page_view, name='landing'),
@@ -15,4 +11,6 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('create_post/', views.create_post, name='create_post'),
     path('home/', views.home_view, name='home'),
+    path('profile/<int:id>/', views.profile_view, name='profile'),
+    path('follow/<int:pk>/', views.follow_user, name='follow_user'),
 ]
