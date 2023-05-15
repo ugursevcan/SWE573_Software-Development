@@ -3,18 +3,33 @@
 {% block title %}Home Feed{% endblock %}
 
 {% block content %}
-    <h1>Home Feed</h1>
-    <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Post</a>
+    <br>
+    <div class="d-flex justify-content-center">
+        <h1>Stream</h1>
+    </div>
+    <div class="d-flex justify-content-end">
+        <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Post</a>
+    </div>
     <hr>
-    {% for post in posts %}
-        <div class="panel panel-default">
-            <div class="panel-body">
-                <h3>{{ post.title }}</h3>
-                <p>{{ post.content }}</p>
-                {% if post.image %}
-                    <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
-                {% endif %}
+    <div class="d-flex justify-content-center flex-column">
+        {% for post in posts %}
+            <div class="card my-3">
+                <div class="card-body">
+                    <h3>{{ post.title }}</h3>
+                    <p>{{ post.content }}</p>
+                    {% if post.image %}
+                        <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
+                    {% endif %}
+                    <div class="mt-3">
+                        <button class="btn btn-primary btn-sm like-button">Like</button>
+                        <button class="btn btn-secondary btn-sm comment-button">Comment</button>
+                        <div class="comment-section mt-3" style="display: none;">
+                            <textarea class="form-control mb-2 comment-text" rows="2" placeholder="Write a comment"></textarea>
+                            <button class="btn btn-primary btn-sm post-comment-button">Post Comment</button>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
-    {% endfor %}
+        {% endfor %}
+    </div>
 {% endblock %}

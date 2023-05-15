@@ -9,24 +9,38 @@ from .models import Post
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
 from .models import UserProfile, User, Comment
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.contrib.auth.models import User
+
 
 
 
 def home_view(request):
     posts = Post.objects.all()
+
+    for post in posts:
+        print(post.id)
+        print(post.image.url)
+
+
     return render(request, 'application/home.html', {'posts': posts})
 
 def profile_view(request, id):
     profile = get_object_or_404(UserProfile, id=id)
     posts = Post.objects.filter(author=profile)
 
+    is_following = profile.followers.filter(id=request.user.profile.id).exists()
+
     return render(request, 'application/profile.html', {
         'profile': profile,
-        #'is_following': profile.followers.contains(request.user.profile),
-        "posts": posts,
-        #"follower_count": profile.followers.count(),
-        "profile_picture": profile.profile_picture
+        'is_following': is_following,
+        'posts': posts,
+        'follower_count': profile.followers.count(),
+        'profile_picture': profile.profile_picture
     })
+
 
 
 @login_required
@@ -35,7 +49,7 @@ def create_post(request):
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
-            post.author = request.user.profile  # Access the UserProfile through the User object
+            post.author = request.user.profile
             post.save()
             return redirect('home')
     else:
@@ -82,7 +96,6 @@ def register(request):
     return render(request, 'application/register.html', {'form': form})
 
 
-
 @login_required
 def home_view(request):
     posts = Post.objects.all().order_by('-date_created')  # Retrieve all posts, ordered by the most recent first
@@ -93,17 +106,11 @@ def follow_user(request, pk):
     # Get the user that the logged-in user wants to follow
     user_to_follow = get_object_or_404(User, pk=pk)
     target_profile = user_to_follow.profile
-    user = request.user
-
-
     user_profile = request.user.profile
-    print(user_profile)
-    if target_profile.followers.contains(user_profile):
+
+    if target_profile.followers.filter(id=user_profile.id).exists():
         target_profile.followers.remove(user_profile)
     else:
         target_profile.followers.add(user_profile)
-    target_profile.save()
-    print("Successfully added to followers")
 
-
-    return HttpResponseRedirect('/user/' + str(user_to_follow.pk))
+    return HttpResponseRedirect('/profile/' + str(user_to_follow.pk))

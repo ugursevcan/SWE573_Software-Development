@@ -25,12 +25,12 @@ class Post(models.Model):
     content = models.TextField()
     link = models.CharField(max_length=500, null=True)
     author = models.ForeignKey(UserProfile, on_delete=models.CASCADE, null=True)
-    # user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, blank=True)
+    #user_profile = models.ForeignKey(UserProfile, on_delete=models.CASCADE, blank=True)
     slug = models.SlugField(default="", null=False, blank=True, db_index=True)
     likers = models.ManyToManyField("UserProfile", related_name='liked_posts', blank=True)
     bookmarkers = models.ManyToManyField("UserProfile", related_name='bookmarked_posts', blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    location = models.ManyToManyField('Location')
+    location = models.ManyToManyField('Location', null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse("postDetailUrl", args=[self.slug])

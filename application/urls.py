@@ -3,6 +3,8 @@ from .views import landing_page_view
 from django.urls import include, path
 from . import views
 from django.contrib.auth.views import LoginView, LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
 
 urlpatterns = [
     path('', landing_page_view, name='landing'),
@@ -14,3 +16,6 @@ urlpatterns = [
     path('profile/<int:id>/', views.profile_view, name='profile'),
     path('follow/<int:pk>/', views.follow_user, name='follow_user'),
 ]
+
+
+
