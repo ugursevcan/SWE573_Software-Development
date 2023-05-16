@@ -9,6 +9,17 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.utils.text import slugify
 
 
+
+
+class Location(models.Model):
+    name = models.CharField(max_length=255)
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
 class UserProfile(models.Model):
     id = models.AutoField(primary_key=True)
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
@@ -30,7 +41,7 @@ class Post(models.Model):
     likers = models.ManyToManyField("UserProfile", related_name='liked_posts', blank=True)
     bookmarkers = models.ManyToManyField("UserProfile", related_name='bookmarked_posts', blank=True)
     date_created = models.DateTimeField(auto_now_add=True, blank=True, null=True)
-    location = models.ManyToManyField('Location', null=True, blank=True)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, null=True, blank=True)
 
     def get_absolute_url(self):
         return reverse("postDetailUrl", args=[self.slug])
@@ -49,5 +60,3 @@ class Comment(models.Model):
     date_created = models.DateTimeField(auto_now_add=True)
 
 
-class Location(models.Model):
-    name = models.CharField(max_length=255)

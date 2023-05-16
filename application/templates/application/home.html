@@ -1,32 +1,39 @@
 {% extends 'application/base.html' %}
+{% load static %}
 
 {% block title %}Home Feed{% endblock %}
 
 {% block content %}
     <br>
     <div class="d-flex justify-content-center">
-        <h1>Stream</h1>
+        <h1>My Stream</h1>
     </div>
     <div class="d-flex justify-content-end">
         <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Post</a>
     </div>
-    <hr>
     <div class="d-flex justify-content-center flex-column">
         {% for post in posts %}
-            <div class="card my-3">
+            <div class="card my-3 post-card">
                 <div class="card-body">
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
                     {% if post.image %}
                         <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
                     {% endif %}
-                    <div class="mt-3">
-                        <button class="btn btn-primary btn-sm like-button">Like</button>
+                </div>
+                <div class="card-footer d-flex justify-content-between align-items-center">
+                    <div class="d-flex">
                         <button class="btn btn-secondary btn-sm comment-button">Comment</button>
-                        <div class="comment-section mt-3" style="display: none;">
-                            <textarea class="form-control mb-2 comment-text" rows="2" placeholder="Write a comment"></textarea>
-                            <button class="btn btn-primary btn-sm post-comment-button">Post Comment</button>
-                        </div>
+                    </div>
+                    <div>
+                        <form action="{% url 'like_post' post.pk %}" method="post">
+                            {% csrf_token %}
+                            {% if  request.user.profile in post.likers.all %}
+                                <button class="btn btn-primary btn-sm like-button">Like</button>
+                            {% else %}
+                                <button type="submit" class="btn btn-primary btn-sm like-button"> Unlike </button>
+                            {% endif %}
+                        </form>
                     </div>
                 </div>
             </div>

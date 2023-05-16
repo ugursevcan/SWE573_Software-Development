@@ -8,11 +8,12 @@ from .forms import PostForm
 from .models import Post
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login
-from .models import UserProfile, User, Comment
+from .models import UserProfile, User, Comment, Location
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
+
 
 
 
@@ -49,13 +50,27 @@ def create_post(request):
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             post = form.save(commit=False)
-            post.author = request.user.profile
+
+            latitude = form.cleaned_data['latitude']
+            longitude = form.cleaned_data['longitude']
+            location_name = form.cleaned_data['location']
+
+            location = Location.objects.create(
+                name=location_name,
+                latitude=latitude,
+                longitude=longitude
+            )
+
+            post.location = location
             post.save()
-            return redirect('home')
+
+            return redirect('post_detail', pk=post.pk)
+        else:
+            # Print form errors to the console for debugging
+            print(form.errors)
     else:
         form = PostForm()
     return render(request, 'application/create_post.html', {'form': form})
-
 
 def login_view(request):
     if request.method == 'POST':
@@ -114,3 +129,16 @@ def follow_user(request, pk):
         target_profile.followers.add(user_profile)
 
     return HttpResponseRedirect('/profile/' + str(user_to_follow.pk))
+
+
+@login_required
+def like_post(request, pk):
+    post_to_like = get_object_or_404(Post, pk=pk)
+    user_profile = request.user.profile
+
+    if post_to_like.likers.filter(pk=user_profile.pk).exists():
+        post_to_like.likers.remove(user_profile)
+    else:
+        post_to_like.likers.add(user_profile)
+
+    return redirect(request.META.get('HTTP_REFERER'))

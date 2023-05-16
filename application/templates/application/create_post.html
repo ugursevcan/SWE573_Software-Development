@@ -1,18 +1,23 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Create Post</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        #map {
+            height: 300px;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
 <body>
-
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-
             <h2>Create Post</h2>
-
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
@@ -31,17 +36,111 @@
                     <label for="image">Image</label>
                     <input type="file" class="form-control-file" id="image" name="image">
                 </div>
+                <div class="form-group">
+                    <label for="location">Location</label>
+                    {{ form.location }}
+                </div>
+                <div class="form-group">
+                    <label>Latitude</label>
+                    <input type="text" class="form-control" id="latitude" name="latitude">
+
+                </div>
+                <div class="form-group">
+                    <label>Longitude</label>
+                    <input type="text" class="form-control" id="longitude" name="longitude">
+                </div>
+
+                <div id="map"></div>
                 <button type="submit" class="btn btn-primary">Create</button>
             </form>
-
         </div>
     </div>
 </div>
 
+<!-- Include the Google Maps JavaScript and your own JavaScript code -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1ljziM34ytEOAdudNETVx5SupTf2vcnM&libraries=places"></script>
+<script>
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 8
+        });
+        var geocoder = new google.maps.Geocoder();
+        var marker = new google.maps.Marker({
+            map: map
+        });
+
+        // Add event listener to the map
+        map.addListener('click', function(event) {
+            geocodeLatLng(geocoder, map, marker, event.latLng);
+        });
+    }
+
+    function geocodeLatLng(geocoder, map, marker, latLng) {
+        geocoder.geocode({'location': latLng}, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    // Update the location field value
+                    document.getElementById('location').value = results[0].formatted_address;
+// Update the latitude and longitude fields
+                    document.getElementById('latitude').value = latLng.lat();
+                    document.getElementById('longitude').value = latLng.lng();
+                    marker.setPosition(latLng);
+                    map.setCenter(latLng);
+                } else {
+                    alert('No results found');
+                }
+            } else {
+                alert('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+</script>
+<script>
+    // Initialize the map
+    function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 8
+        });
+        var geocoder = new google.maps.Geocoder();
+        var marker = new google.maps.Marker({
+            map: map
+        });
+        // Add event listener to the map
+        map.addListener('click', function(event) {
+            geocodeLatLng(geocoder, map, marker, event.latLng);
+        });
+    }
+
+    // Reverse geocoding
+    function geocodeLatLng(geocoder, map, marker, latLng) {
+        geocoder.geocode({'location': latLng}, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    // Update the location field value
+                    document.getElementById('location').value = results[0].formatted_address;
+                    // Update the latitude and longitude fields
+                    document.getElementById('latitude').value = latLng.lat();
+                    document.getElementById('longitude').value = latLng.lng();
+                    // Update the marker position
+                    marker.setPosition(latLng);
+                    // Center the map on the marker
+                    map.setCenter(latLng);
+                } else {
+                    alert('No results found');
+                }
+            } else {
+                alert('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+</script>
+<!-- Include the Google Maps JavaScript and your own JavaScript code -->
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD1ljziM34ytEOAdudNETVx5SupTf2vcnM&libraries=places&callback=initMap" async defer></script>
 <!-- Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi4h1t4" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-
 </body>
 </html>
