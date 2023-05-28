@@ -14,9 +14,32 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.contrib.auth.models import User
 
+from django.shortcuts import render
+from .models import Post
+from django.contrib.gis.geos import Point
+from django.contrib.gis.db.models.functions import Distance
+from .models import Post
 
 
+def search_view(request):
+    query_title = request.GET.get('title')
+    query_content = request.GET.get('content')
+    query_location = request.GET.get('location')
+    query_radius = request.GET.get('radius')
 
+    if query_title or query_content or (query_location and query_radius):
+        posts = Post.objects.all()
+        if query_title:
+            posts = posts.filter(title__icontains=query_title)
+        if query_content:
+            posts = posts.filter(content__icontains=query_content)
+        if query_location and query_radius:
+            query_location = Point(query_location)
+            posts = posts.filter(location__distance_lte=(query_location, query_radius))
+    else:
+        posts = Post.objects.none()
+
+    return render(request, 'application/search.html', {'posts': posts})
 
 def home_view(request):
     posts = Post.objects.all()
@@ -49,24 +72,18 @@ def create_post(request):
     if request.method == 'POST':
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
-            post = form.save(commit=False)
-
-            latitude = form.cleaned_data['latitude']
-            longitude = form.cleaned_data['longitude']
-            location_name = form.cleaned_data['location']
-
-            location = Location.objects.create(
+            location_name = form.cleaned_data.get('location')
+            latitude = form.cleaned_data.get('latitude')
+            longitude = form.cleaned_data.get('longitude')
+            location, _ = Location.objects.get_or_create(
                 name=location_name,
-                latitude=latitude,
-                longitude=longitude
+                defaults={'latitude': latitude, 'longitude': longitude},
             )
-
+            post = form.save(commit=False)
             post.location = location
             post.save()
-
-            return redirect('post_detail', pk=post.pk)
+            return redirect('home')
         else:
-            # Print form errors to the console for debugging
             print(form.errors)
     else:
         form = PostForm()

@@ -6,6 +6,7 @@ from django.contrib.auth.views import LoginView, LogoutView
 from django.conf import settings
 from django.conf.urls.static import static
 
+
 urlpatterns = [
     path('', landing_page_view, name='landing'),
     path('register/', views.register, name='register'),
@@ -16,6 +17,8 @@ urlpatterns = [
     path('profile/<int:id>/', views.profile_view, name='profile'),
     path('follow/<int:pk>/', views.follow_user, name='follow_user'),
     path('like/<int:pk>/', views.like_post, name='like_post'),
+    path('search/', views.search_view, name='search'),
+
 ]
 
 

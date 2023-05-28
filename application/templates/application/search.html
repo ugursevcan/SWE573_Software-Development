@@ -1,25 +1,39 @@
 {% extends 'application/base.html' %}
 {% load static %}
 
-{% block title %}Home Feed{% endblock %}
+{% block title %}Search{% endblock %}
 
 {% block content %}
+    <div class="d-flex justify-content-center">
+        <form method="GET" action="">
+            <div class="form-group">
+                <label for="titleSearch">Title:</label>
+                <input type="text" id="titleSearch" name="title" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="contentSearch">Content:</label>
+                <input type="text" id="contentSearch" name="content" class="form-control">
+            </div>
+            <div class="form-group">
+                <label for="locationSearch">Location:</label>
+                <input type="text" id="locationSearch" name="location" class="form-control" placeholder="Enter a location">
+                <input type="range" id="radiusSearch" name="radius" min="0" max="50" class="form-control">
+                <small id="radiusHelp" class="form-text text-muted">Radius in kilometers.</small>
+            </div>
+            <button type="submit" class="btn btn-primary">Search</button>
+        </form>
+    </div>
     <br>
     <div class="d-flex justify-content-center">
-        <h1>My Stream</h1>
-    </div>
-    <div class="d-flex justify-content-end">
-        <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Post</a>
+        <h1>Search Results</h1>
     </div>
     <div class="d-flex justify-content-center flex-column">
         {% for post in posts %}
             <div class="card my-3 post-card">
                 <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <h3>{{ post.title }}</h3>
-                        <h6>{{ post.location.name }}</h6>
-                    </div>
+                    <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
+                    <p>{{ post.location.district }}</p>
                     {% if post.image %}
                         <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
                     {% endif %}
