@@ -134,3 +134,6 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 MEDIA_ROOT = BASE_DIR / "uploads/"
 MEDIA_URL = "user-media/"
 
+#GDAL_LIBRARY_PATH = '/usr/lib/libgdal.so'  # The path may vary based on your system
+
+
