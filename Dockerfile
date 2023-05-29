@@ -20,7 +20,7 @@ RUN pip install --upgrade pip
 
 RUN pip install pillow
 
-RUN pip3 install -r requirements
+RUN pip install -r requirements.txt
 
 # Copy project
 EXPOSE 8000
