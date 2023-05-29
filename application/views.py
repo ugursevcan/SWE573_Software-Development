@@ -7,8 +7,6 @@ from django.contrib.auth.decorators import login_required
 from .forms import PostForm
 from .models import UserProfile, User, Comment, Location, Post
 from django.contrib.auth.models import User
-from django.contrib.gis.geos import Point
-from django.contrib.gis.db.models.functions import Distance
 
 from django.db.models import Q
 from datetime import datetime
