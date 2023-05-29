@@ -28,7 +28,7 @@ GOOGLE_MAPS_API_KEY = 'AIzaSyD1ljziM34ytEOAdudNETVx5SupTf2vcnM'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["0.0.0.0", "127.0.0.1"]
 
 
 
