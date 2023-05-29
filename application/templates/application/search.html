@@ -4,26 +4,46 @@
 {% block title %}Search{% endblock %}
 
 {% block content %}
-    <div class="d-flex justify-content-center">
-        <form method="GET" action="">
-            <div class="form-group">
-                <label for="titleSearch">Title:</label>
-                <input type="text" id="titleSearch" name="title" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="contentSearch">Content:</label>
-                <input type="text" id="contentSearch" name="content" class="form-control">
-            </div>
-            <div class="form-group">
-                <label for="locationSearch">Location:</label>
-                <input type="text" id="locationSearch" name="location" class="form-control" placeholder="Enter a location">
-                <input type="range" id="radiusSearch" name="radius" min="0" max="50" class="form-control">
-                <small id="radiusHelp" class="form-text text-muted">Radius in kilometers.</small>
-            </div>
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
+    <div class="row">
+        <div class="col-lg-8">
+            <form method="GET" action="{% url 'search' %}">
+                <div class="form-group">
+                    <label for="searchQuery">Search by keywords:</label>
+                    <input type="text" id="searchQuery" name="query" class="form-control">
+                </div>
+                <div class="form-group">
+                    <label for="autocomplete">Location</label>
+                    <input id="autocomplete" type="text" class="form-control" placeholder="Enter your location">
+                </div>
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="latitude">Latitude</label>
+                        <input type="text" class="form-control" id="latitude" name="latitude">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="longitude">Longitude</label>
+                        <input type="text" class="form-control" id="longitude" name="longitude">
+                    </div>
+                </div>
+                <div class="form-row">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label for="searchStartDate">Start Date:</label>
+                        <input type="date" id="searchStartDate" name="search_start_date" class="form-control">
+                    </div>
+                    <div class="form-group col-md-6">
+                        <label for="searchEndDate">End Date:</label>
+                        <input type="date" id="searchEndDate" name="search_end_date" class="form-control">
+                    </div>
+                </div>
+                </div>
+                <button type="submit" class="btn btn-primary">Search</button>
+            </form>
+        </div>
     </div>
-    <br>
+
+    <div id="map" style="height: 300px; margin-bottom: 20px;"></div>
+
     <div class="d-flex justify-content-center">
         <h1>Search Results</h1>
     </div>
@@ -33,27 +53,90 @@
                 <div class="card-body">
                     <h3>{{ post.title }}</h3>
                     <p>{{ post.content }}</p>
-                    <p>{{ post.location.district }}</p>
                     {% if post.image %}
                         <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
                     {% endif %}
                 </div>
                 <div class="card-footer d-flex justify-content-between align-items-center">
-                    <div class="d-flex">
-                        <button class="btn btn-secondary btn-sm comment-button">Comment</button>
-                    </div>
-                    <div>
-                        <form action="{% url 'like_post' post.pk %}" method="post">
-                            {% csrf_token %}
-                            {% if  request.user.profile in post.likers.all %}
-                                <button class="btn btn-primary btn-sm like-button">Like</button>
-                            {% else %}
-                                <button type="submit" class="btn btn-primary btn-sm like-button"> Unlike </button>
-                            {% endif %}
-                        </form>
-                    </div>
+                    {% if post.location.latitude and post.location.longitude %}
+                        <small class="text-muted">
+                            Location: {{ post.location.name }} || Latitude: {{ post.location.latitude }}, Longitude: {{ post.location.longitude }}
+                        </small>
+                    {% endif %}
                 </div>
             </div>
+        {% empty %}
+            <p>No results found.</p>
         {% endfor %}
     </div>
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDxS8-xVitUpsOSAOoIuJNAiaMabKA4dTw&libraries=places"></script>
+<script>
+    var map;
+    var geocoder;
+    var marker;
+
+    function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+            center: {lat: -34.397, lng: 150.644},
+            zoom: 8
+        });
+
+        geocoder = new google.maps.Geocoder();
+
+        marker = new google.maps.Marker({
+            map: map
+        });
+
+        map.addListener('click', function(event) {
+            geocodeLatLng(geocoder, map, marker, event.latLng);
+        });
+
+        var input = document.getElementById('autocomplete');
+        var autocomplete = new google.maps.places.Autocomplete(input);
+
+        autocomplete.addListener('place_changed', function() {
+            var place = autocomplete.getPlace();
+
+            if (!place.geometry) {
+                window.alert("No details available for input: '" + place.name + "'");
+                return;
+            }
+
+            if (place.geometry.viewport) {
+                map.fitBounds(place.geometry.viewport);
+            } else {
+                map.setCenter(place.geometry.location);
+                map.setZoom(17);
+            }
+
+            marker.setPosition(place.geometry.location);
+            document.getElementById('latitude').value = place.geometry.location.lat();
+            document.getElementById('longitude').value = place.geometry.location.lng();
+            document.getElementById('location').value = place.formatted_address;
+        });
+
+        autocomplete.setFields(['geometry', 'formatted_address']);
+    }
+
+    function geocodeLatLng(geocoder, map, marker, latlng) {
+        geocoder.geocode({'location': latlng}, function(results, status) {
+            if (status === 'OK') {
+                if (results[0]) {
+                    map.setZoom(11);
+                    marker.setPosition(latlng);
+                    document.getElementById('latitude').value = latlng.lat();
+                    document.getElementById('longitude').value = latlng.lng();
+                    document.getElementById('location').value = results[0].formatted_address;
+                } else {
+                    window.alert('No results found');
+                }
+            } else {
+                window.alert('Geocoder failed due to: ' + status);
+            }
+        });
+    }
+
+    // Call the map function when the page loads
+    window.onload = initMap;
+</script>
 {% endblock %}

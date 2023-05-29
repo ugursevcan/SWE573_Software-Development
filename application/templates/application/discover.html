@@ -1,60 +1,18 @@
 {% extends 'application/base.html' %}
+{% load static %}
 
-{% block title %}{{ profile.user.first_name }}'s Profile{% endblock %}
+{% block title %}Home Feed{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <div class="row">
-        <!-- Profile picture and basic info -->
-        <div class="col-lg-8">
-            <div class="card shadow mb-4" style="border-radius: 1rem;">
-                <div class="card-body">
-                    <div class="row">
-                        <!-- Profile Picture -->
-                        <div class="col-md-3 text-center">
-                            {% if profile.profile_picture %}
-                            <img src="{{ profile.profile_picture.url }}" alt="Profile Picture" class="rounded-circle img-fluid" style="width:150px; height:150px; object-fit:cover;">
-                            {% else %}
-                            <i class="fas fa-user-circle fa-5x"></i>
-                            {% endif %}
-                        </div>
-
-                        <!-- User Information -->
-                        <div class="col-md-5 align-self-center">
-                            <h2>{{ profile.user.first_name }} {{ profile.user.last_name }}</h2>
-                        </div>
-
-                        <!-- Follow Button -->
-                        <div class="col-md-2 align-self-center">
-                            <form action="{% url 'follow_user' profile.pk %}" method="post">
-                                {% csrf_token %}
-                                {% if is_following %}
-                                <button type="submit" class="btn btn-primary">Unfollow</button>
-                                {% else %}
-                                <button type="submit" class="btn btn-primary">Follow</button>
-                                {% endif %}
-                            </form>
-                        </div>
-
-                        <!-- Follower Count -->
-                        <div class="col-md-2 align-self-center text-right">
-                            <span class="badge badge-primary">Followers: {{ follower_count }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bio -->
-                <div class="card-footer">
-                    <p class="lead">{{ profile.bio }}</p>
-                </div>
-            </div>
-        </div>
+    <br>
+    <div class="container">
+    <div class="d-flex justify-content-center">
+        <h1>Discover Memories</h1>
     </div>
-</div>
+    <div class="d-flex justify-content-end">
+        <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Memory</a>
+    </div>
 
-    <hr>
-
-<!-- Posts -->
         {% for post in posts %}
 
             <div class="card shadow mb-4" style="border-radius: 1rem;">
@@ -119,5 +77,5 @@
             </div>
 
         {% endfor %}
-
+</div>
 {% endblock %}

@@ -3,7 +3,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Create Post</title>
+    <title>Create a Memory 🖼️</title>
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
@@ -17,7 +17,7 @@
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-6">
-            <h2>Create Post</h2>
+            <h2>Create a Memory 🖼</h2>
             <form method="POST" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="form-group">
@@ -28,25 +28,40 @@
                     <label for="content">Content</label>
                     <textarea class="form-control" id="content" name="content" rows="5"></textarea>
                 </div>
+
+                <div class="form-group">
+                    <label for="memory_start_date">Memory Start Date</label>
+                    <input type="date" class="form-control" id="memory_start_date" name="memory_start_date">
+                </div>
+
+                <div class="form-group">
+                    <label for="memory_finish_date">Memory Finish Date</label>
+                    <input type="date" class="form-control" id="memory_finish_date" name="memory_finish_date">
+                </div>
+
                 <div class="form-group">
                     <label for="link">Link</label>
                     <input type="text" class="form-control" id="link" name="link">
                 </div>
+
                 <div class="form-group">
                     <label for="image">Image</label>
                     <input type="file" class="form-control-file" id="image" name="image">
                 </div>
+
                 <div class="form-group">
                     <label for="autocomplete">Location</label>
                     <input id="autocomplete" type="text" class="form-control" placeholder="Enter your location">
                     {{ form.location }}
                 </div>
+
                 <div class="form-group">
-                    <label>Latitude</label>
+                    <label for="id_latitude">Latitude</label>
                     <input type="text" class="form-control" id="latitude" name="latitude">
                 </div>
+
                 <div class="form-group">
-                    <label>Longitude</label>
+                    <label for="id_longitude">Longitude</label>
                     <input type="text" class="form-control" id="longitude" name="longitude">
                 </div>
 

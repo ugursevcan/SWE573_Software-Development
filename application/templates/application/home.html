@@ -5,41 +5,77 @@
 
 {% block content %}
     <br>
-    <div class="d-flex justify-content-center">
-        <h1>My Stream</h1>
-    </div>
-    <div class="d-flex justify-content-end">
-        <a href="{% url 'create_post' %}" class="btn btn-primary create-post-button">Create Post</a>
-    </div>
-    <div class="d-flex justify-content-center flex-column">
+    <div class="container">
+        <div class="d-flex justify-content-center">
+            <h1 class="font-weight-bold text-primary">My Stream</h1>
+        </div>
+        <div class="d-flex justify-content-end">
+            <a href="{% url 'create_post' %}" class="btn btn-primary mb-4">Create Memory</a>
+        </div>
+
         {% for post in posts %}
-            <div class="card my-3 post-card">
+            {% if post.author == request.user.profile or request.user.profile in post.author.user.profile.followers.all %}
+            <div class="card shadow mb-4" style="border-radius: 1rem;">
                 <div class="card-body">
-                    <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                        <h3>{{ post.title }}</h3>
-                        <h6>{{ post.location.name }}</h6>
+                    <div class="d-flex justify-content-between">
+                        <h5 class="card-title mb-2">{{ post.title }}</h5>
+                        <h6 class="text-muted">{{ post.location.name }}</h6>
                     </div>
-                    <p>{{ post.content }}</p>
+                    <p class="card-text">{{ post.content }}</p>
                     {% if post.image %}
-                        <img src="{{ post.image.url }}" alt="Post Image" class="img-fluid">
+                        <img class="img-fluid rounded" src="{{ post.image.url }}" alt="Post Image">
                     {% endif %}
-                </div>
-                <div class="card-footer d-flex justify-content-between align-items-center">
-                    <div class="d-flex">
-                        <button class="btn btn-secondary btn-sm comment-button">Comment</button>
-                    </div>
-                    <div>
-                        <form action="{% url 'like_post' post.pk %}" method="post">
+
+                    <!-- Display Comments -->
+                    {% for comment in post.comment_set.all %}
+                        <div class="mt-3 bg-light p-3 rounded">
+                            <strong>{{ comment.user.username }}</strong>
+                            <p>{{ comment.text }}</p>
+                            <small>{{ comment.date_created }}</small>
+                        </div>
+                    {% empty %}
+                        <p>No comments yet.</p>
+                    {% endfor %}
+
+                    <!-- Comment Form -->
+                    <div class="mt-3">
+                        <form action="{% url 'submit_comment' post.id %}" method="POST">
                             {% csrf_token %}
-                            {% if  request.user.profile in post.likers.all %}
-                                <button class="btn btn-primary btn-sm like-button">Like</button>
-                            {% else %}
-                                <button type="submit" class="btn btn-primary btn-sm like-button"> Unlike </button>
-                            {% endif %}
+                            <div class="row">
+                                <div class="col-8">
+                                    <textarea name="text" class="form-control" rows="2" placeholder="Add a comment..."></textarea>
+                                </div>
+                                <div class="col-4">
+                                    <button type="submit" class="btn btn-primary btn-block btn-sm">Add Comment</button>
+                                </div>
+                            </div>
                         </form>
+
+                        <!-- Like Form -->
+                        <div class="mt-2">
+                            <form action="{% url 'like_post' post.pk %}" method="post">
+                                {% csrf_token %}
+                                {% if request.user.profile in post.likers.all %}
+                                    <button type="submit" class="btn btn-primary">Liked</button>
+                                {% else %}
+                                    <button type="submit" class="btn btn-outline-primary">Like</button>
+                                {% endif %}
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Display the number of likes -->
+                <div class="card-footer">
+                    <div class="text-right">
+                        {{ post.likers.count }} likes
+                    </div>
+                    <div class="text-left">
+                        <p class="text-muted">{{ post.date_created }}</p> <!-- Display post creation date -->
                     </div>
                 </div>
             </div>
+            {% endif %}
         {% endfor %}
     </div>
 {% endblock %}

@@ -1,66 +1,82 @@
 from django.http import HttpResponseRedirect
-from .forms import RegistrationForm
+from .forms import RegistrationForm, CommentForm
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.forms import AuthenticationForm
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from .forms import PostForm
-from .models import Post
-from django.contrib.auth.decorators import login_required
-from django.contrib.auth import authenticate, login
-from .models import UserProfile, User, Comment, Location
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from .models import UserProfile, User, Comment, Location, Post
 from django.contrib.auth.models import User
-
-from django.shortcuts import render
-from .models import Post
 from django.contrib.gis.geos import Point
 from django.contrib.gis.db.models.functions import Distance
-from .models import Post
+
+from django.db.models import Q
+from datetime import datetime
+from django.utils import timezone
 
 
-def search_view(request):
-    query_title = request.GET.get('title')
-    query_content = request.GET.get('content')
-    query_location = request.GET.get('location')
-    query_radius = request.GET.get('radius')
+def search(request):
+    query = request.GET.get('query')
+    latitude = request.GET.get('latitude')
+    longitude = request.GET.get('longitude')
+    search_start_date = request.GET.get('search_start_date')
+    search_end_date = request.GET.get('search_end_date')
 
-    if query_title or query_content or (query_location and query_radius):
-        posts = Post.objects.all()
-        if query_title:
-            posts = posts.filter(title__icontains=query_title)
-        if query_content:
-            posts = posts.filter(content__icontains=query_content)
-        if query_location and query_radius:
-            query_location = Point(query_location)
-            posts = posts.filter(location__distance_lte=(query_location, query_radius))
-    else:
-        posts = Post.objects.none()
+    print(f"Search Parameters: {query}, {latitude}, {longitude}, {search_start_date}, {search_end_date}")
 
+    posts = Post.objects.none()
+
+    if query:
+        posts = Post.objects.filter(Q(title__icontains=query) | Q(content__icontains=query))
+        print(f"Posts after keyword search: {posts}")
+
+    if latitude and longitude:
+        latitude = float(latitude)
+        longitude = float(longitude)
+
+        location_posts = Post.objects.filter(
+            location__latitude__range=(latitude - 1, latitude + 1),
+            location__longitude__range=(longitude - 1, longitude + 1)
+        )
+        posts = posts | location_posts
+        print(f"Posts after location search: {posts}")
+
+    if search_start_date and search_end_date:
+        # Convert string dates to date objects
+        start_date = timezone.datetime.strptime(search_start_date, '%Y-%m-%d').date()
+        end_date = timezone.datetime.strptime(search_end_date, '%Y-%m-%d').date()
+
+        print(f"Search Dates: Start-{start_date}, End-{end_date}")
+
+        # Filter for posts where the memory_start_date is before the search end date and the memory_finish_date is after the search start date
+        posts = posts.filter(memory_start_date__lte=end_date, memory_finish_date__gte=start_date)
+        print(f"Posts after date search: {posts}")
+
+    posts = posts.order_by('date_created')
     return render(request, 'application/search.html', {'posts': posts})
+
 
 def home_view(request):
     posts = Post.objects.all()
+    comment_form = CommentForm()
 
     for post in posts:
         print(post.id)
         print(post.image.url)
 
-
-    return render(request, 'application/home.html', {'posts': posts})
+    return render(request, 'application/home.html', {"posts": posts, "comment_form": comment_form})
 
 def profile_view(request, id):
     profile = get_object_or_404(UserProfile, id=id)
-    posts = Post.objects.filter(author=profile)
+
+
 
     is_following = profile.followers.filter(id=request.user.profile.id).exists()
 
     return render(request, 'application/profile.html', {
         'profile': profile,
         'is_following': is_following,
-        'posts': posts,
+        "posts": Post.objects.filter(Q(author=profile)),
         'follower_count': profile.followers.count(),
         'profile_picture': profile.profile_picture
     })
@@ -73,14 +89,21 @@ def create_post(request):
         form = PostForm(request.POST, request.FILES)
         if form.is_valid():
             location_name = form.cleaned_data.get('location')
-            latitude = form.cleaned_data.get('latitude')
-            longitude = form.cleaned_data.get('longitude')
+            latitude = request.POST.get('latitude')
+            longitude = request.POST.get('longitude')
+            print(latitude)
+
             location, _ = Location.objects.get_or_create(
                 name=location_name,
-                defaults={'latitude': latitude, 'longitude': longitude},
+                latitude=latitude,
+                longitude=longitude,
             )
             post = form.save(commit=False)
             post.location = location
+            post.author = request.user.profile
+            post.memory_start_date = timezone.datetime.strptime(request.POST.get('memory_start_date'), '%Y-%m-%d').date()
+            post.memory_finish_date = timezone.datetime.strptime(request.POST.get('memory_finish_date'), '%Y-%m-%d').date()
+            print(type(post.memory_start_date))
             post.save()
             return redirect('home')
         else:
@@ -134,6 +157,16 @@ def home_view(request):
     return render(request, 'application/home.html', {'posts': posts})
 
 @login_required
+def discover(request):
+    posts = Post.objects.all().order_by('-date_created')  # Retrieve all posts, ordered by the most recent first
+    return render(request, 'application/discover.html', {'posts': posts})
+
+@login_required
+def my_likes(request):
+    posts = Post.objects.all().order_by('-date_created')  # Retrieve all posts, ordered by the most recent first
+    return render(request, 'application/my_likes.html', {'posts': posts})
+
+@login_required
 def follow_user(request, pk):
     # Get the user that the logged-in user wants to follow
     user_to_follow = get_object_or_404(User, pk=pk)
@@ -159,3 +192,21 @@ def like_post(request, pk):
         post_to_like.likers.add(user_profile)
 
     return redirect(request.META.get('HTTP_REFERER'))
+
+
+@login_required
+def people_list(request):
+    profiles = UserProfile.objects.all()
+    return render(request, 'application/people.html', {'profiles': profiles})
+
+@login_required
+def submit_comment(request, post_pk):
+    post = get_object_or_404(Post, pk=post_pk)
+    form = CommentForm(request.POST, request.FILES)
+    if form.is_valid():
+        comment = form.save(commit=False)
+        comment.user = request.user  # assign the current user to the comment
+        comment.post = post
+        comment.save()
+    return redirect(request.META.get('HTTP_REFERER'))
+
