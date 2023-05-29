@@ -1,7 +1,9 @@
 # SWE573_Software-Development
-# Lifestream
+# Lifestream 
 
-Lifestream is a social media platform that allows users to share their life moments, connect with friends, and discover new content. It provides a streamlined and user-friendly interface for creating posts, liking and commenting on posts, and exploring a personalized feed.
+Lifestream is a social media platform that allows users to share their life moments, connect with friends, and discover new content. It provides a streamlined and user-friendly interface for creating posts, liking and commenting on posts, and exploring a personalized feed. You can reach Lifestream here
+
+[Visit Lifestream](http://16.170.219.29:8000/)
 
 ## Features
 
